@@ -33,9 +33,11 @@ def user_document(document_number):
 
 
 @app.route("/users/<int:document_number>/banking-info")
-def bankinfo(info):
-    banks = User.query.filter(User.document_number == info).first()
-    return jsonify(banks)
+def bankinfo(document_number):
+    #import pdb; pdb.set_trace()
+    bank_info = User.query.filter_by(document_number=document_number).first().banking_info
+    return jsonify(bank_info)
+
 
 if __name__ == '__main__':
     app.run()

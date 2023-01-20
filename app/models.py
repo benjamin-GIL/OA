@@ -7,7 +7,6 @@ db = SQLAlchemy()
 @dataclass
 class User(db.Model):
     __tablename__ = 'user'
-    __table_args__ = {'schema': 'public'}
 
     user_id: int = db.Column(db.Integer, primary_key=True)
     name: str = db.Column(db.String())
@@ -16,14 +15,15 @@ class User(db.Model):
     gender_id: int = db.Column(db.ForeignKey("gender.id"))
     document_number:int = db.Column(db.Integer())
     document_type_id: int = db.Column(db.ForeignKey("document_type.id"))
+    banking_info = db.relationship('BankInfo',backref = 'user', lazy=True)
 
-    def __init__(self,user_id, name, last_name, birthday, gender_id, document, document_type_id):
+    def __init__(self,user_id, name, last_name, birthday, gender_id, document_number, document_type_id):
         self.user_id = user_id
         self.name = name
         self.last_name = last_name
         self.birthday = birthday
         self.gender_id = gender_id
-        self.document = document
+        self.document_number = document_number
         self.document_type_id = document_type_id
 
     def __repr__(self):
@@ -66,7 +66,7 @@ class ContactInfo(db.Model):
     __tablename__ = 'contact_info'
 
     id: int = db.Column(db.Integer, primary_key=True)
-    user_id: int = db.Column(db.ForeignKey("user_id"))
+    user_id: int = db.Column(db.ForeignKey("user.user_id"))
     email: str = db.Column(db.String)
     phone_number: int = db.Column(db.Integer())
 
@@ -88,7 +88,7 @@ class BankInfo(db.Model):
     bank_id: int = db.Column(db.ForeignKey("bank_id.id"))
     account_type_id: int = db.Column(db.ForeignKey("account_type.id"))
     account_number: int = db.Column(db.Integer())
-    user_id: int = db.Column(db.Integer, db.ForeignKey("User.user_id"))
+    user_id: int = db.Column(db.Integer, db.ForeignKey("user.user_id"))
 
     def __init__(self, id, bank_id, account_type_id, account_number, user_id):
         self.id = id
