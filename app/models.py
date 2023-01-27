@@ -10,8 +10,6 @@ class User(db.Model):
     __table_args__ = {'schema': 'public'}
 
     user_id: int = db.Column(db.Integer, primary_key=True)
-    email: str = db.Column(db.String())
-    phone_number: int = db.Column(db.Integer())
     name: str = db.Column(db.String())
     last_name: str = db.Column(db.String())
     birthday: str = db.Column(db.Date()) 
@@ -20,10 +18,8 @@ class User(db.Model):
     document_type_id: str = db.Column(db.String())
 
 
-    def __init__(self, user_id, email, phone_number, name, last_name, birthday, gender_id, document_number, document_type_id, account_type, account_number):
+    def __init__(self, user_id, name, last_name, birthday, gender_id, document_number, document_type_id, account_type, account_number):
         self.user_id = user_id
-        self.email = email
-        self.phone_number = phone_number
         self.name = name
         self.last_name = last_name
         self.birthday = birthday
@@ -65,6 +61,7 @@ class DocumentType(db.Model):
     
     def __repr__(self):
         return f"<id{self.id}, identity{self.identity}>"
+
 
 @dataclass
 class ContactInfo(db.Model):
