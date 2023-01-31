@@ -4,15 +4,15 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config(object):
     DEBUG = True
-    TESTING = False
-    CSRF_ENABLED = False
+    TESTING = True
+    CSRF_ENABLED = True
     SECRET_KEY = 'esto-necesta-un-cambio'
     SQLALCHEMY_DATABASE_URI = "postgresql://pyke:bestr@localhost:5432/onboarding"
-    #SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+    # SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
 
 
 class ProductionConfig(Config):
-    DEBUG = False
+    DEBUG = True
 
 
 class StagingConfig(Config):
@@ -26,4 +26,4 @@ class DevelopmentConfig(Config):
 
 
 class TestingConfig(Config):
-    TESTING = True
+    TESTING = False
