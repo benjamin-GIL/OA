@@ -1,5 +1,5 @@
-from flask import Flask, jsonify, request
-from models import db, User, BankInfo, Bank  
+from flask import Flask, jsonify, request, abort
+from models import db, User, BankInfo, Bank, ContactInfo 
 
 import config
 
@@ -29,24 +29,46 @@ def user_document(document_number):
     return jsonify(user)
 
 
+@app.route("/users/<int:document_number>/contact-info")
+def contact_info(document_number):
+    user_contact_info = User.query.filter_by(document_number=document_number).first().contact_info
+    return jsonify(user_contact_info)
+
+
 @app.route("/users/<int:document_number>/banking-info")
-def bankinfo(document_number):
+def bank_info(document_number):
     bank_info = User.query.filter_by(document_number=document_number).first().banking_info
     return jsonify(bank_info)
 
 
-'''
 @app.route("/users", methods=['POST'])
 def create_user():
-    response = []
-    return jsonify(response)
-'''
+    import pdb; pdb.set_trace()
+
+    data = request.json
+    data_doc = data.get("document_number")
+    filter_user = User.query.filter_by(document_number=data_doc).first()
+
+    if filter_user is None:
+        new_user = User(
+            name=data.get("name"), last_name=data.get("last_name"),
+            birthday=data.get("birthday"), gender_id=data.get("gender_id"),
+            document_number=data.get("document_number"),
+            document_type_id=data.get("document_type_id")
+        )
+        db.session.add(new_user)
+        db.session.commit()
+    else:
+        return abort(500, description="error trying to create user")
+    return jsonify(new_user)
+
 
 @app.route("/users", methods=['DELETE'])
 def delete_user():
-    response = {'message: success'}
+    response = []
     return jsonify(response)
 
+#@app.route("/users", methods = ['PUT'])
 
 # ___________________________________________________________________________
 
