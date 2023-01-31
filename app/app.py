@@ -43,7 +43,6 @@ def bank_info(document_number):
 
 @app.route("/users", methods=['POST'])
 def create_user():
-    import pdb; pdb.set_trace()
 
     data = request.json
     data_doc = data.get("document_number")
@@ -65,10 +64,31 @@ def create_user():
 
 @app.route("/users", methods=['DELETE'])
 def delete_user():
-    response = []
-    return jsonify(response)
 
-#@app.route("/users", methods = ['PUT'])
+    req = request.json
+    delete_user = User.query.filter(User.name == req.get("name")).first()
+    db.session.delete(delete_user)
+    db.session.commit()
+    return jsonify(delete_user)
+
+
+@app.route("/users", methods=['PUT'])
+def edit_user():
+    import pdb; pdb.set_trace()
+
+    id = request.json.get("user_id")
+
+    edit = User.query.filter_by(user_id=id).first()
+
+    data = request.json
+    data_keys = data.keys()
+    for x in data_keys:
+        if x == "user_id":
+            continue
+        if hasattr(edit, x):
+            setattr(edit, x, data.get(x))
+    db.session.commit()
+    return jsonify(edit)
 
 # ___________________________________________________________________________
 
