@@ -7,19 +7,18 @@ db = SQLAlchemy()
 class User(db.Model):
     __tablename__ = 'user'
 
-    __table_args__ = {'schema': 'public'}
-
-    user_id: int = db.Column(db.Integer, primary_key=True)
+    user_id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name: str = db.Column(db.String())
     last_name: str = db.Column(db.String())
-    birthday: str = db.Column(db.Date()) 
-    gender_id: str = db.Column(db.String())
+    birthday: str = db.Column(db.Date())
+    gender_id: int = db.Column(db.ForeignKey("gender.id"))
     document_number: int = db.Column(db.Integer())
-    document_type_id: str = db.Column(db.String())
+    document_type_id: int = db.Column(db.ForeignKey("document_type.id"))
+    contact_info = db.relationship('ContactInfo', backref='user', lazy=True)
+    banking_info = db.relationship('BankInfo', backref='user', lazy=True)
 
 
-    def __init__(self, user_id, name, last_name, birthday, gender_id, document_number, document_type_id, account_type, account_number):
-        self.user_id = user_id
+    def __init__(self, name, last_name, birthday, gender_id, document_number, document_type_id):
         self.name = name
         self.last_name = last_name
         self.birthday = birthday
@@ -35,7 +34,7 @@ class User(db.Model):
 class Gender(db.Model):
     __tablename__ = 'gender'
     
-    id: int = db.Column(db.Integer, primary_key=True)
+    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
     identity: str = db.Column(db.String())
 
     def __init__(self, id, identity):
@@ -50,7 +49,7 @@ class Gender(db.Model):
 class DocumentType(db.Model):
     __tablename__ = 'document_type'
     
-    id: int = db.Column(db.Integer, primary_key=True)
+    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
     short_name: str = db.Column(db.String())
     name: str = db.Column(db.String())
 
@@ -67,9 +66,9 @@ class DocumentType(db.Model):
 class ContactInfo(db.Model):
     __tablename__ = 'contact_info'
 
-    id: int = db.Column(db.Integer, primary_key=True)
+    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id: int = db.Column(db.ForeignKey("user.user_id"))
-    email: str = db.Column(db.String)
+    email: str = db.Column(db.String())
     phone_number: int = db.Column(db.Integer())
 
     def __init__(self, id, user_id, email, phone_number):
@@ -88,7 +87,7 @@ class BankInfo(db.Model):
 
     __tablename__ = 'banking_info'
 
-    id: int = db.Column(db.Integer, primary_key=True)
+    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
     bank_id: int = db.Column(db.ForeignKey("bank_id.id"))
     account_type_id: int = db.Column(db.ForeignKey("account_type.id"))
     account_number: int = db.Column(db.Integer())
@@ -125,7 +124,7 @@ class Bank(db.Model):
 class AccountType(db.Model):
     __tablename__ = "account_type"
 
-    id: int = db.Column(db.Integer, primary_key=True)
+    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
     type: str = db.Column(db.String())
 
     def __init__(self, id, type):

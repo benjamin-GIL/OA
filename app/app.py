@@ -1,5 +1,5 @@
-from flask import Flask, jsonify, request
-from models import db, User, BankInfo, Bank  
+from flask import Flask, jsonify, request, abort
+from models import db, User, BankInfo, Bank, ContactInfo 
 
 import config
 
@@ -23,32 +23,56 @@ def user():
     return jsonify(users)
 
 
-@app.route("/users/<int:document_number>")
+@app.route("/users/<int:document_number>", methods=['GET'])
 def user_document(document_number):
     user = User.query.filter_by(document_number=document_number).first()
     return jsonify(user)
 
 
-@app.route("/users/<int:document_number>/banking-info")
-def bankinfo(document_number):
-    bank_info = User.query.filter_by(document_number=document_number).first().banking_info
-    return jsonify(bank_info)
-
-
-'''
 @app.route("/users", methods=['POST'])
 def create_user():
-    response = []
-    return jsonify(response)
-'''
 
-@app.route("/users", methods=['DELETE'])
-def delete_user():
-    response = {'message: success'}
-    return jsonify(response)
+    data = request.json
+    data_doc = data.get("document_number")
+    filter_user = User.query.filter_by(document_number=data_doc).first()
+
+    if filter_user is None:
+        new_user = User(
+            name=data.get("name"), last_name=data.get("last_name"),
+            birthday=data.get("birthday"), gender_id=data.get("gender_id"),
+            document_number=data.get("document_number"),
+            document_type_id=data.get("document_type_id")
+        )
+        db.session.add(new_user)
+        db.session.commit()
+    else:
+        return abort(500, description="error trying to create user")
+    return jsonify(new_user)
 
 
-# ___________________________________________________________________________
+@app.route("/users/<int:document_number>", methods=['DELETE'])
+def delete_user(document_number):
+    delete_user = User.query.filter_by(document_number=document_number).first()
+    db.session.delete(delete_user)
+    db.session.commit()
+    return "", 204
+
+@app.route("/users/<int:document_number>", methods=['PUT'])
+def edit_user(document_number):
+
+    edited_user = User.query.filter_by(document_number=document_number).first()
+
+    data = request.json
+    data_keys = data.keys()
+    for x in data_keys:
+        if x == "document_number":
+            continue
+        if hasattr(edited_user, x):
+            setattr(edited_user, x, data.get(x))
+    db.session.commit()
+    return jsonify(edited_user)
+
+# ___________________________________________________________________________ 
 
 
 @app.route("/banks", methods=['GET'])
@@ -59,7 +83,6 @@ def get_banks():
 
 @app.route("/banks/<string:name>", methods=['GET'])
 def get_bank_by_name(name):
-    # pdb.set_trace()
     clean_name = name.replace("-", " ")
     banks = Bank.query.filter_by(name=clean_name).first()
     return jsonify(banks)
@@ -105,12 +128,25 @@ def edit_bank():
             continue
         if hasattr(bank, x):
             setattr(bank, x, data.get(x))
-
     # cuarto tomo la informacion que extraje en el anterior paso y actualizo los valores correspondientes en la instancia de Bank
     # quinto hago el commit
     db.session.commit()
     # sexto devuelto el json del objeto Bank
     return jsonify({"messenge":"success"})
+
+#___________________________________________________________________________ 
+
+@app.route("/users/<int:document_number>/contact-info", method=['GET'])
+def contact_info(document_number):
+    user_contact_info = User.query.filter_by(document_number=document_number).first().contact_info
+    return jsonify(user_contact_info)
+
+#____________________________________________________________________________
+
+@app.route("/users/<int:document_number>/banking-info", method=['GET'])
+def bank_info(document_number):
+    bank_info = User.query.filter_by(document_number=document_number).first().banking_info
+    return jsonify(bank_info)
 
 
 if __name__ == '__main__':
