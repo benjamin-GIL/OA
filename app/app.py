@@ -136,14 +136,14 @@ def edit_bank():
 
 #___________________________________________________________________________ 
 
-@app.route("/users/<int:document_number>/contact-info")
+@app.route("/users/<int:document_number>/contact-info", method=['GET'])
 def contact_info(document_number):
     user_contact_info = User.query.filter_by(document_number=document_number).first().contact_info
     return jsonify(user_contact_info)
 
 #____________________________________________________________________________
 
-@app.route("/users/<int:document_number>/banking-info")
+@app.route("/users/<int:document_number>/banking-info", method=['GET'])
 def bank_info(document_number):
     bank_info = User.query.filter_by(document_number=document_number).first().banking_info
     return jsonify(bank_info)
