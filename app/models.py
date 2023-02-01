@@ -71,9 +71,8 @@ class ContactInfo(db.Model):
     email: str = db.Column(db.String())
     phone_number: int = db.Column(db.Integer())
 
-    def __init__(self, id, user_id, email, phone_number):
+    def __init__(self, user_id, email, phone_number):
         
-        self.id = id
         self.user_id = user_id
         self.email = email
         self.phone_number = phone_number

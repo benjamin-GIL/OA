@@ -31,6 +31,7 @@ def user_document(document_number):
 
 @app.route("/users", methods=['POST'])
 def create_user():
+    import pdb; pdb.set_trace()
 
     data = request.json
     data_doc = data.get("document_number")
@@ -119,7 +120,7 @@ def edit_bank():
     # se recibe un request y extraigo el ID
     id = request.json.get("id")  
     # segundo se hace un query a la base de datos filtrando por el el anterior id y se obtiene la instancia de Bank 
-    bank = Bank.query.filter_by(id=id).first()
+    bank = Bank.query.filter_buser_contact_infoy(id=id).first()
     # tercero extraigo el resto de informacion que viene en el request
     data = request.json
     data_keys = data.keys()
@@ -136,14 +137,61 @@ def edit_bank():
 
 #___________________________________________________________________________ 
 
-@app.route("/users/<int:document_number>/contact-info", method=['GET'])
+@app.route("/users/<int:document_number>/contact-info", methods=['GET'])
 def contact_info(document_number):
     user_contact_info = User.query.filter_by(document_number=document_number).first().contact_info
     return jsonify(user_contact_info)
 
+
+@app.route("/users/<int:document_number>/contact-info", methods=['POST'])
+def create_contact_info(document_number):
+
+    data = request.json
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    user_contact_info = ContactInfo.query.filter_by(user_id=id).first()
+
+    if user_contact_info is None:
+        new_contact_info = ContactInfo(
+            user_id=data.get("user_id"), email=data.get("email"),
+            phone_number=data.get("phone_number")
+        )
+        db.session.add(new_contact_info)
+        db.session.commit()
+    else:
+        return abort(501, description="error trying to create User contact info")
+    return jsonify(new_contact_info)
+
+
+@app.route("/users/<int:document_number>/contact-info", methods=['DELETE'])
+def delete_contact_info(document_number):
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    delete_user_contact_info = ContactInfo.query.filter_by(user_id=id).first()
+    db.session.delete(delete_user_contact_info)
+    db.session.commit()
+    return "", 204
+
+
+@app.route("/users/<int:document_number>/contact-info", methods=['PUT'])
+def edit_contact_info(document_number):
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    edited_contact_info = ContactInfo.query.filter_by(user_id=id).first()
+
+    data = request.json
+    data_keys = data.keys()
+    for x in data_keys:
+        if x == "user_id":
+            continue
+        if hasattr(edited_contact_info, x):
+            setattr(edited_contact_info, x, data.get(x))
+    db.session.commit()
+    return jsonify(edited_contact_info)
+
 #____________________________________________________________________________
 
-@app.route("/users/<int:document_number>/banking-info", method=['GET'])
+@app.route("/users/<int:document_number>/banking-info", methods=['GET'])
 def bank_info(document_number):
     bank_info = User.query.filter_by(document_number=document_number).first().banking_info
     return jsonify(bank_info)
