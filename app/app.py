@@ -196,6 +196,51 @@ def bank_info(document_number):
     return jsonify(bank_info)
 
 
+@app.route("/users/<int:document_number>/banking-info", methods=['POST'])
+def create_banking_info(document_number):
+    data = request.json
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    user_banking_info = BankingInfo.query.filter_by(user_id=id).first()
+
+    if user_banking_info is None:
+        new_banking_info = BankingInfo(
+            user_id=data.get("user_id"), bank_id=data.get("bank_id"),
+            account_number=data.get("account_number"), account_type_id=data.get("account_type_id")
+        )
+        db.session.add(new_banking_info)
+        db.session.commit()
+    else:
+        return abort(502, description="error trying to create User banking info")
+    return jsonify(new_banking_info)
+
+
+@app.route("/users/<int:document_number>/banking-info", methods=['DELETE'])
+def delete_banking_info(document_number):
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    delete_user_banking_info = BankingInfo.query.filter_by(user_id=id).first()
+    db.session.delete(delete_user_banking_info)
+    db.session.commit()
+    return "", 204
+
+
+@app.route("/users/<int:document_number>/banking-info", methods=['PUT'])
+def edit_banking_info(document_number):
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    edited_banking_info = BankingInfo.query.filter_by(user_id=id).first()
+
+    data = request.json
+    data_keys = data.keys()
+    for x in data_keys:
+        if x == "user_id":
+            continue
+        if hasattr(edited_banking_info, x):
+            setattr(edited_banking_info, x, data.get(x))
+    db.session.commit()
+    return jsonify(edited_banking_info)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
