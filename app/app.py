@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, abort
-from models import db, User, BankInfo, Bank, ContactInfo 
+from models import db, User, BankingInfo, Bank, ContactInfo 
 
 import config
 
@@ -105,12 +105,12 @@ def post_bank():
 def delete_bank():
     # 1: se recibe el request y se extrae la informacion 
     rqst = request.json
-    # 2: se inicializa el objeto con un query Bank  y se filtra con la informacion anterior 
+    # 2: se inicializa el objeto contactcon un query Bank  y se filtra con la informacion anterior 
     delete_banks = Bank.query.filter(Bank.name == rqst.get("name")).first()
     # 3: se pasa el objeto bank, se añade a la sesion y se hace el commit  
     db.session.delete(delete_banks)
     db.session.commit()
-    #4: devuelvo objeto creado como json
+    # 4: devuelvo objeto creado como json
     return jsonify(delete_banks)
 
 
@@ -134,19 +134,67 @@ def edit_bank():
     # sexto devuelto el json del objeto Bank
     return jsonify({"messenge":"success"})
 
-#___________________________________________________________________________ 
+# ___________________________________________________________________________ 
 
-@app.route("/users/<int:document_number>/contact-info", method=['GET'])
+@app.route("/users/<int:document_number>/contact-info", methods=['GET'])
 def contact_info(document_number):
     user_contact_info = User.query.filter_by(document_number=document_number).first().contact_info
     return jsonify(user_contact_info)
 
-#____________________________________________________________________________
 
-@app.route("/users/<int:document_number>/banking-info", method=['GET'])
+@app.route("/users/<int:document_number>/contact-info", methods=['POST'])
+def create_contact_info(document_number):
+    data = request.json
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    user_contact_info = ContactInfo.query.filter_by(user_id=id).first()
+
+    if user_contact_info is None:
+        new_contact_info = ContactInfo(
+            user_id=data.get("user_id"), email=data.get("email"),
+            phone_number=data.get("phone_number")
+        )
+        db.session.add(new_contact_info)
+        db.session.commit()
+    else:
+        return abort(501, description="error trying to create User contact info")
+    return jsonify(new_contact_info)
+
+
+@app.route("/users/<int:document_number>/contact-info", methods=['DELETE'])
+def delete_contact_info(document_number):
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    delete_user_contact_info = ContactInfo.query.filter_by(user_id=id).first()
+    db.session.delete(delete_user_contact_info)
+    db.session.commit()
+    return "", 204
+
+
+@app.route("/users/<int:document_number>/contact-info", methods=['PUT'])
+def edit_contact_info(document_number):
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    edited_contact_info = ContactInfo.query.filter_by(user_id=id).first()
+
+    data = request.json
+    data_keys = data.keys()
+    for x in data_keys:
+        if x == "user_id":
+            continue
+        if hasattr(edited_contact_info, x):
+            setattr(edited_contact_info, x, data.get(x))
+    db.session.commit()
+    return jsonify(edited_contact_info)
+
+# ____________________________________________________________________________
+
+
+@app.route("/users/<int:document_number>/banking-info", methods=['GET'])
 def bank_info(document_number):
     bank_info = User.query.filter_by(document_number=document_number).first().banking_info
     return jsonify(bank_info)
+
 
 
 if __name__ == '__main__':
