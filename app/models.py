@@ -15,7 +15,7 @@ class User(db.Model):
     document_number: int = db.Column(db.Integer())
     document_type_id: int = db.Column(db.ForeignKey("document_type.id"))
     contact_info = db.relationship('ContactInfo', backref='user', lazy=True)
-    banking_info = db.relationship('BankInfo', backref='user', lazy=True)
+    banking_info = db.relationship('BankingInfo', backref='user', lazy=True)
 
 
     def __init__(self, name, last_name, birthday, gender_id, document_number, document_type_id):
@@ -82,7 +82,7 @@ class ContactInfo(db.Model):
 
 
 @dataclass
-class BankInfo(db.Model):
+class BankingInfo(db.Model):
 
     __tablename__ = 'banking_info'
 
@@ -92,8 +92,8 @@ class BankInfo(db.Model):
     account_number: int = db.Column(db.Integer())
     user_id: int = db.Column(db.Integer, db.ForeignKey("user.user_id"))
 
-    def __init__(self, id, bank_id, account_type_id, account_number, user_id):
-        self.id = id
+    def __init__(self, bank_id, account_type_id, account_number, user_id):
+
         self.user_id = user_id
         self.bank_id = bank_id
         self.account_type_id = account_type_id

@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, abort
-from models import db, User, BankInfo, Bank, ContactInfo 
+from models import db, User, BankingInfo, Bank, ContactInfo 
 
 import config
 
@@ -31,7 +31,6 @@ def user_document(document_number):
 
 @app.route("/users", methods=['POST'])
 def create_user():
-    import pdb; pdb.set_trace()
 
     data = request.json
     data_doc = data.get("document_number")
@@ -106,12 +105,12 @@ def post_bank():
 def delete_bank():
     # 1: se recibe el request y se extrae la informacion 
     rqst = request.json
-    # 2: se inicializa el objeto con un query Bank  y se filtra con la informacion anterior 
+    # 2: se inicializa el objeto contactcon un query Bank  y se filtra con la informacion anterior 
     delete_banks = Bank.query.filter(Bank.name == rqst.get("name")).first()
     # 3: se pasa el objeto bank, se añade a la sesion y se hace el commit  
     db.session.delete(delete_banks)
     db.session.commit()
-    #4: devuelvo objeto creado como json
+    # 4: devuelvo objeto creado como json
     return jsonify(delete_banks)
 
 
@@ -120,7 +119,7 @@ def edit_bank():
     # se recibe un request y extraigo el ID
     id = request.json.get("id")  
     # segundo se hace un query a la base de datos filtrando por el el anterior id y se obtiene la instancia de Bank 
-    bank = Bank.query.filter_buser_contact_infoy(id=id).first()
+    bank = Bank.query.filter_by(id=id).first()
     # tercero extraigo el resto de informacion que viene en el request
     data = request.json
     data_keys = data.keys()
@@ -135,7 +134,7 @@ def edit_bank():
     # sexto devuelto el json del objeto Bank
     return jsonify({"messenge":"success"})
 
-#___________________________________________________________________________ 
+# ___________________________________________________________________________ 
 
 @app.route("/users/<int:document_number>/contact-info", methods=['GET'])
 def contact_info(document_number):
@@ -145,7 +144,6 @@ def contact_info(document_number):
 
 @app.route("/users/<int:document_number>/contact-info", methods=['POST'])
 def create_contact_info(document_number):
-
     data = request.json
     get_user = User.query.filter_by(document_number=document_number).first()
     id = get_user.user_id
@@ -189,12 +187,59 @@ def edit_contact_info(document_number):
     db.session.commit()
     return jsonify(edited_contact_info)
 
-#____________________________________________________________________________
+# ____________________________________________________________________________
+
 
 @app.route("/users/<int:document_number>/banking-info", methods=['GET'])
 def bank_info(document_number):
     bank_info = User.query.filter_by(document_number=document_number).first().banking_info
     return jsonify(bank_info)
+
+
+@app.route("/users/<int:document_number>/banking-info", methods=['POST'])
+def create_banking_info(document_number):
+    data = request.json
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    user_banking_info = BankingInfo.query.filter_by(user_id=id).first()
+
+    if user_banking_info is None:
+        new_banking_info = BankingInfo(
+            user_id=data.get("user_id"), bank_id=data.get("bank_id"),
+            account_number=data.get("account_number"), account_type_id=data.get("account_type_id")
+        )
+        db.session.add(new_banking_info)
+        db.session.commit()
+    else:
+        return abort(502, description="error trying to create User banking info")
+    return jsonify(new_banking_info)
+
+
+@app.route("/users/<int:document_number>/banking-info", methods=['DELETE'])
+def delete_banking_info(document_number):
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    delete_user_banking_info = BankingInfo.query.filter_by(user_id=id).first()
+    db.session.delete(delete_user_banking_info)
+    db.session.commit()
+    return "", 204
+
+
+@app.route("/users/<int:document_number>/banking-info", methods=['PUT'])
+def edit_banking_info(document_number):
+    get_user = User.query.filter_by(document_number=document_number).first()
+    id = get_user.user_id
+    edited_banking_info = BankingInfo.query.filter_by(user_id=id).first()
+
+    data = request.json
+    data_keys = data.keys()
+    for x in data_keys:
+        if x == "user_id":
+            continue
+        if hasattr(edited_banking_info, x):
+            setattr(edited_banking_info, x, data.get(x))
+    db.session.commit()
+    return jsonify(edited_banking_info)
 
 
 if __name__ == '__main__':
